@@ -1,7 +1,6 @@
 package com.practice.catalog.catalogservice.repository;
 
 import com.practice.catalog.catalogservice.domain.Book;
-import org.hibernate.validator.constraints.ISBN;
 
 import java.util.Optional;
 

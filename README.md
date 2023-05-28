@@ -279,5 +279,8 @@ public class BookControllerAdvice {
 
 learn it later
 
-
+## Summary
+> use **@Valid** only in case of **@ResponseBody**
+> 
+> When the validation fails we will get **MethodArgumentNotValidException**
 
