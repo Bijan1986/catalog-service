@@ -284,3 +284,58 @@ learn it later
 > 
 > When the validation fails we will get **MethodArgumentNotValidException**
 
+# Spring cloud native chapter 4: Externalized Configuration Management
+
+### Custom Properties
+
+#### 1. Defining custom properties
+
+1. Annotate the Application class with **@ConfigurationPropertiesScan**
+2. Create a package config and create a class PolarProperties and annotate it with **@ConfigurationProperties**
+ > @ConfigurationProperties(prefix="polar")
+> 
+3. Add the dependency **spring-boot-configuration-processor**  in the controller class.
+4. in the application.properties add **polar.greeting = Welcome to the local properties**
+
+
+```java
+//step 1: 
+@SpringBootApplication
+@ConfigurationPropertiesScan
+public class CatalogServiceApplication {
+
+  public static void main(String[] args) {
+    SpringApplication.run(CatalogServiceApplication.class, args);
+  }
+
+}
+
+//step 2: 
+
+@ConfigurationProperties(prefix = "polar")
+@Data
+public class PolarProperties {
+  private String greeting;
+}
+
+//step 3: 
+// polar.greeting=Welcome to local host polar properties
+
+//step 4:
+
+@RestController
+@RequestMapping("hello")
+@RequiredArgsConstructor
+public class HomeController {
+  private final PolarProperties polarProperties;
+
+  @GetMapping
+  public String getProperty() {
+    return polarProperties.getGreeting();
+  }
+
+}
+
+```
+
+
