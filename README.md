@@ -338,4 +338,52 @@ public class HomeController {
 
 ```
 
+### Profiles: feature flags and configuration groups
 
+> it is a good practice to use profiles as feature flags
+
+1. create a class called BookDataLoader
+2. add the **@Profile("testdata")**
+3. Autowire Repository
+4. create a method to load up data in the start-up
+5. annotate that method with **@EventListener(ApplicationReadyEvent.class)**
+6. update application.properties with **spring.profiles.active=testdata**
+7. start up the application and call **localhost:8080/books**
+
+```java
+
+@Component
+@Profile("testdata")
+@AllArgsConstructor
+public class BookDataLoader {
+    private final BookRepository bookRepository;
+
+    @EventListener(ApplicationReadyEvent.class)
+    public void loadBookTestData(){
+        var book1 = new Book("132131434","Northern Lights","Lyra Silverstar",9.90);
+        var book2 = new Book("1234124412","Polar Journey","Lyra Polarson",9.90);
+        bookRepository.save(book1);
+        bookRepository.save(book2);
+    }
+}
+
+// spring.profiles.active=testdata
+
+```
+```json
+[
+  {
+    "isbn": "1234124412",
+    "title": "Polar Journey",
+    "author": "Lyra Polarson",
+    "price": 9.9
+  },
+  {
+    "isbn": "132131434",
+    "title": "Northern Lights",
+    "author": "Lyra Silverstar",
+    "price": 9.9
+  }
+]
+
+```
