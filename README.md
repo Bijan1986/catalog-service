@@ -387,3 +387,131 @@ public class BookDataLoader {
 ]
 
 ```
+
+### Centralized Configuration Management with Spring Cloud Config Sever
+
+#### Using Git to store configuration data
+
+1. Crate a new **config-repo** Git repository
+2. Create a file named **catalog-service.properties**
+3. Define the value for **polar.greeting** property there
+4. create another file named **catalog-service-prod.properties**
+5. add different text for **polar.greeting** property there
+6. commit and push
+
+
+#### Setting-up a config server
+
+1. create a new spring boot project named **config-service**
+2. Add the dependency **config server**
+3. Enable the config server by adding **@EnableConfigSever** to the application
+4. now give access to the config data stored in github **config-repo** repository .
+5. in config-service application go to Application.properties file
+6. **spring.cloud.config.server.git.uri** should point to the git repository .
+7. you can configure from which branch the spring should take the properties file.
+8. **spring.cloud.config.server.git .default-label = main/master** will do the trick
+
+#### Making config-service more resilient
+
+```yaml
+spring:
+  application:
+    name: config-service
+  cloud:
+    config:
+      server:
+        git:
+          uri: <your-config-repo-github-url>
+          default-label: main
+          timeout: 5
+          clone-on-start: true
+          force-pull: true
+```
+
+#### Understanding the Configuration server rest-api
+
+The config server which we built just now connects to github properties via rest-api.
+
+If you will start up the application and try to make a call to the below you will see the result
+> http :8888/catalog-service/default
+> 
+> http :8888/catalog-service/prod
+> 
+
+### Using Configuration server with the config client
+
+So we have set up the config server, and it seems to work fine.<br>
+Now we need to make our spring boot application use it .
+
+In this case, the spring boot application becomes the client .
+
+#### Setting up configuration client
+
+1. Add the dependency **
+   implementation 'org.springframework.cloud:spring-cloud-starter-config' **
+2. Instruct Catalog-service to fetch the details/properties from the config-service
+```yaml
+
+spring:
+application:
+name: catalog-service
+config:
+import: "optional:configserver:"
+cloud:
+config:
+uri: http://localhost:8888
+
+```
+3. Run and test
+
+#### Making the configuration client resilient
+
+```yaml
+spring:
+  application:
+    name: catalog-service
+  config:
+    import: "optional:configserver:"
+  cloud:
+    config:
+      uri: http://localhost:8888
+      request-connect-timeout: 5000
+      request-read-timeout: 5000
+      fail-fast: true
+      retry:
+        max-attempts: 6
+        initial-interval: 1000
+        max-interval: 2000
+        multiplier: 1.1
+```
+
+add the dependency
+
+```yaml
+dependencies {
+  ...
+  implementation 'org.springframework.retry:spring-retry' 
+}
+```
+
+#### Refreshing configuration service at runtime
+
+1. add actuator dependency
+```yaml
+dependencies {
+  ...
+  implementation 'org.springframework.boot:spring-boot-starter-actuator' 
+}
+```
+2. **/actuator/refresh** event triggers the refresh event
+3. add this to catalog-service project
+
+```yaml
+management:
+  endpoints:
+    web:
+      exposure:
+        include: refresh
+```
+
+
